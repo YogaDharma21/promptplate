@@ -1,55 +1,168 @@
-# Architecture Documentation
+# Promptplate Architecture
+
+## Overview
+
+Promptplate is an AI prompt management and sharing platform built as a polyglot monorepo.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS |
+| Backend | Laravel 11, PHP 8.2 |
+| Database | MySQL 8.0 |
+| Authentication | Laravel Sanctum |
 
 ## Project Structure
 
 ```
-starter-kit/
-├── apps/           # Individual projects (web, mobile, desktop, backend, cli)
-├── docker/         # Docker configurations
-├── docs/           # Documentation
-├── scripts/        # Utility scripts
-└── .github/        # GitHub workflows
+promptplate/
+├── apps/
+│   ├── web/        # Next.js frontend (port 3000)
+│   └── backend/   # Laravel API (port 8000)
+├── docker/        # Docker Compose configuration
+├── docs/          # This documentation
+└── scripts/       # Development utility scripts
 ```
 
-## Polyglot Monorepo Principles
+## Architecture Diagram
 
-### No Shared Code
-Each app in `/apps` is completely independent:
-- No shared components
-- No shared utilities
-- No shared libraries
-- Each app has its own dependencies
+```
+┌─────────────────┐      ┌─────────────────┐
+│   Next.js      │      │    MySQL        │
+│   Frontend     │◄────►│    Database     │
+│   (Port 3000)  │      │    (Port 3306)  │
+└────────┬────────┘      └─────────────────┘
+         │
+         │ HTTP/REST
+         ▼
+┌─────────────────┐
+│    Laravel      │
+│    Backend      │
+│  (Port 8000)    │
+└─────────────────┘
+```
 
-### Each App Lives Alone
-Every project in `/apps/*` is self-contained:
-- Own package manager (npm, pip, cargo, go mod, etc.)
-- Own dependencies
-- Own build system
-- Own configuration files
+## Frontend (`apps/web`)
 
-### Language Freedom
-Apps can use any language/framework:
-- `/apps/web` - React, Vue, Svelte, Next.js, Nuxt, etc.
-- `/apps/mobile` - React Native, Flutter, Swift, Kotlin, etc.
-- `/apps/desktop` - Electron, Tauri, Qt, etc.
-- `/apps/backend` - Express, FastAPI, Go, Rust, etc.
-- `/apps/cli` - Any CLI framework
+- **Framework**: Next.js 15 with App Router
+- **UI**: React 19, Tailwind CSS, Shadcn UI components
+- **State**: React Hook Form + SWR for data fetching
+- **API Client**: Axios
 
-## Adding a New App
+### Key Directories
 
-1. Create a new folder under `/apps/<category>/`
-2. Initialize the project with its own package manager
-3. Add the appropriate CI job in `.github/workflows/`
-4. Update `docker/docker-compose.yml` if needed
+```
+apps/web/
+├── app/              # Next.js App Router pages
+├── components/       # React components
+├── lib/              # Utilities (axios, utils)
+├── public/           # Static assets
+└── styles/           # Global styles
+```
 
-## CI/CD
+### API Integration
 
-The monorepo uses path-based filtering to run only relevant jobs:
-- Changes to `apps/web/**` trigger the web build
-- Changes to `apps/backend/**` trigger the backend build
-- etc.
+The frontend communicates with the backend via REST API:
+- Base URL: `NEXT_PUBLIC_BACKEND_URL` env (defaults to `http://localhost:8000`)
+- Authentication: Bearer token from Laravel Sanctum
+
+## Backend (`apps/backend`)
+
+- **Framework**: Laravel 11
+- **ORM**: Eloquent
+- **Authentication**: Laravel Sanctum (SPA authentication)
+- **API**: RESTful endpoints
+
+### Key Directories
+
+```
+apps/backend/
+├── app/
+│   ├── Http/         # Controllers, Middleware
+│   └── Models/       # Eloquent models
+├── config/           # Laravel configuration
+├── database/
+│   ├── migrations/   # Database migrations
+│   └── seeders/      # Database seeders
+├── routes/           # API routes
+└── tests/            # PHPUnit tests
+```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/prompts` | List all prompts |
+| POST | `/api/prompts` | Create a prompt |
+| GET | `/api/prompts/{id}` | Get single prompt |
+| PUT | `/api/prompts/{id}` | Update prompt |
+| DELETE | `/api/prompts/{id}` | Delete prompt |
+| GET | `/api/tags` | List all tags |
+| POST | `/api/auth/register` | User registration |
+| POST | `/api/auth/login` | User login |
+| POST | `/api/auth/logout` | User logout |
+
+### Database Schema
+
+**Users Table**
+- id, name, email, password, timestamps
+
+**Prompts Table**
+- id, user_id, title, content, created_at, updated_at
+
+**Tags Table**
+- id, name, timestamps
+
+**prompt_tag Table** (pivot)
+- prompt_id, tag_id
 
 ## Docker
 
-Use `/docker/docker-compose.yml` to orchestrate multiple apps locally.
-Each app should have its own `Dockerfile` if containerization is needed.
+The project uses Docker Compose for local development:
+
+```bash
+docker-compose -f docker/docker-compose.yml up -d
+```
+
+Services:
+- `web` - Next.js frontend
+- `backend` - Laravel API
+- `db` - MySQL database
+
+## Development Workflow
+
+### Local Development
+
+1. Install dependencies:
+   ```bash
+   ./scripts/install.sh
+   ```
+
+2. Run both apps:
+   ```bash
+   ./scripts/dev.sh
+   ```
+
+3. Access:
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:8000
+
+### With Docker
+
+1. Start services:
+   ```bash
+   ./scripts/docker-up.sh
+   ```
+
+2. Run migrations (first time):
+   ```bash
+   docker-compose -f docker/docker-compose.yml exec backend php artisan migrate
+   ```
+
+## CI/CD
+
+GitHub Actions workflow:
+- Path-based filtering triggers relevant builds
+- `apps/web/**` changes → Build & test frontend
+- `apps/backend/**` changes → Run PHPUnit tests

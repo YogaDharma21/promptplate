@@ -1,4 +1,4 @@
-# Gemini Context for Promptplate
+# Opencode Rules for Promptplate
 
 ## Project Overview
 
@@ -16,7 +16,7 @@ This is **Promptplate** - an AI prompt management and sharing platform built as 
 ```
 apps/
 ├── web/        # Next.js frontend (port 3000)
-└── backend/    # Laravel API (port 8000)
+└── backend/   # Laravel API (port 8000)
 ```
 
 ## Key Principles

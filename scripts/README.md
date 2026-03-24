@@ -1,19 +1,50 @@
 # Scripts
 
-This folder contains utility scripts for the monorepo.
+This folder contains utility scripts for the Promptplate monorepo.
 
-## Purpose
+## Available Scripts
 
-- Helper scripts for common tasks
-- Build and deployment automation
-- Development environment setup
+### install.sh
 
-## Usage
+Installs all dependencies for both frontend and backend applications.
 
-Each script should have its own documentation or `--help` flag.
+```bash
+./scripts/install.sh
+```
 
-## Notes
+This will:
+- Run `composer install` for the backend
+- Copy `.env.example` to `.env` and generate app key
+- Run database migrations
+- Run `npm install` for the frontend
 
-- Scripts are NOT shared code between apps
-- Each app should have its own scripts if needed
-- Keep scripts language-agnostic where possible
+### dev.sh
+
+Runs both frontend and backend development servers concurrently.
+
+```bash
+./scripts/dev.sh
+```
+
+This will start:
+- Backend API at http://localhost:8000
+- Frontend at http://localhost:3000
+
+### docker-up.sh
+
+Starts all services using Docker Compose.
+
+```bash
+./scripts/docker-up.sh
+```
+
+This will start:
+- Frontend (Next.js) at http://localhost:3000
+- Backend (Laravel) at http://localhost:8000
+- MySQL database at localhost:3306
+
+## Requirements
+
+- **install.sh**: Node.js, npm, PHP, Composer
+- **dev.sh**: Node.js, npm, PHP, Composer
+- **docker-up.sh**: Docker, Docker Compose

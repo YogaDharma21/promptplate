@@ -1,16 +1,62 @@
 version: '3.8'
 
 services:
-  # Add services from apps here
-  # Example:
-  # web:
-  #   build: ./apps/web
-  #   ports:
-  #     - "3000:3000"
-  #
-  # backend:
-  #   build: ./apps/backend
-  #   ports:
-  #     - "8080:8080"
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    volumes:
+      - ../apps/web:/app
+      - /app/node_modules
+    command: npm run dev
+    working_dir: /app
 
-  # Add more services as needed
+  backend:
+    build:
+      context: ../apps/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8000
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=promptplate
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+      - SANCTUM_STATEFUL_DOMAINS=web:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ../apps/backend:/var/www/html
+      - /var/www/html/vendor
+    command: php artisan serve --host=0.0.0.0
+    working_dir: /var/www/html
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=promptplate
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:

@@ -1,68 +1,102 @@
-# Starter Kit
+# Promptplate
 
-A **polyglot monorepo** template for managing multiple independent projects in various languages and frameworks.
+A polyglot monorepo for an AI prompt management and sharing platform.
 
-## Philosophy
+## Tech Stack
 
-- **No shared code** - Each app is completely independent
-- **Each app lives alone** - Self-contained with own dependencies, build system, and configuration
-- **Language agnostic** - Use any framework or language per app
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Laravel 11, PHP 8.2
+- **Database**: MySQL 8.0
+- **Authentication**: Laravel Sanctum
 
 ## Project Structure
 
 ```
-apps/           # All projects (web, mobile, desktop, backend, cli)
-├── web/        # Frontend applications
-├── mobile/     # Mobile applications
-├── desktop/    # Desktop applications
-├── backend/    # Backend services
-└── cli/        # Command-line tools
-
-docker/         # Docker configurations
-docs/           # Architecture documentation
-scripts/        # Utility scripts
-.github/        # CI/CD workflows
+promptplate/
+├── apps/
+│   ├── web/        # Next.js frontend application
+│   └── backend/    # Laravel REST API
+├── docker/         # Docker configurations
+├── docs/           # Architecture documentation
+├── scripts/        # Development utility scripts
+└── .github/        # CI/CD workflows
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (for JS/TS projects)
-- [Docker](https://www.docker.com/) (for containerization)
-- [Python](https://www.python.org/) (for Python projects)
-- [Go](https://go.dev/) (for Go projects)
-- [Rust](https://www.rust-lang.org/) (for Rust projects)
+- Node.js 20+
+- PHP 8.2+
+- Composer
+- Docker & Docker Compose
+- MySQL 8.0 (or use Docker)
 
-### Creating a New App
+### Local Development
 
-1. Navigate to the appropriate folder under `apps/`
-2. Initialize your project:
+#### Option 1: Using Scripts
 
 ```bash
-# Example: Creating a new web app
-cd apps/web
-npm create vite@latest my-app -- --template react
+# Install all dependencies
+./scripts/install.sh
+
+# Run both apps concurrently
+./scripts/dev.sh
 ```
 
-3. Update the CI workflow in `.github/workflows/ci.yml` if needed
+#### Option 2: Manual Setup
 
-### Running with Docker
+**Backend:**
+```bash
+cd apps/backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
+```
+
+**Frontend:**
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000`
+The backend API will be at `http://localhost:8000`
+
+### Using Docker
 
 ```bash
 # Start all services
-docker-compose -f docker/docker-compose.yml up
+docker-compose -f docker/docker-compose.yml up -d
 
-# Start specific service
-docker-compose -f docker/docker-compose.yml up web
+# View logs
+docker-compose -f docker/docker-compose.yml logs -f
+
+# Stop services
+docker-compose -f docker/docker-compose.yml down
 ```
+
+## API Endpoints
+
+The backend provides REST API at `/api`:
+
+- `GET /api/prompts` - List all prompts
+- `POST /api/prompts` - Create a prompt
+- `GET /api/prompts/{id}` - Get single prompt
+- `PUT /api/prompts/{id}` - Update prompt
+- `DELETE /api/prompts/{id}` - Delete prompt
+- `GET /api/tags` - List all tags
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
 
 ## CI/CD
 
 This repository uses GitHub Actions with path-based filtering:
-- Changes to `apps/web/**` trigger web app builds
-- Changes to `apps/backend/**` trigger backend builds
-- Each app category has its own job
+- Changes to `apps/web/**` trigger frontend builds
+- Changes to `apps/backend/**` trigger backend tests
 
 ## License
 
