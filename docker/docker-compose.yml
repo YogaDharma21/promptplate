@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  # Add services from apps here
+  # Example:
+  # web:
+  #   build: ./apps/web
+  #   ports:
+  #     - "3000:3000"
+  #
+  # backend:
+  #   build: ./apps/backend
+  #   ports:
+  #     - "8080:8080"
+
+  # Add more services as needed
